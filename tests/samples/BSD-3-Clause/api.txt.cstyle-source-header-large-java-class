@@ -1,0 +1,228 @@
+/**
+ * Copyright (c) <year> <owner>. 
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+ * 
+ * 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ */
+package tests.samples._templates;
+
+/**
+ * This large Java class has a class comment of its own, which should NOT interfere
+ * with any license header that would be placed above.
+ */
+public class LargeJavaClass {
+
+    private int instanceField1;
+    private int instanceField2;
+    private int instanceField3;
+    private int instanceField4;
+    private int instanceField5;
+    private int instanceField6;
+    private int instanceField7;
+    private int instanceField8;
+    private int instanceField9;
+    private int instanceField10;
+    private int instanceField11;
+    private int instanceField12;
+    private int instanceField13;
+    private int instanceField14;
+    private int instanceField15;
+    private int instanceField16;
+    private int instanceField17;
+    private int instanceField18;
+    private int instanceField19;
+    private int instanceField20;
+
+    public LargeJavaClass(String name) {
+        // just a template to generate content where a license text is
+        // embedded into a source file's "header" comment.
+        this.instanceField1 = 1;
+        this.instanceField2 = 2;
+        this.instanceField3 = 3;
+        this.instanceField4 = 4;
+        this.instanceField5 = 5;
+        this.instanceField6 = 6;
+        this.instanceField7 = 7;
+        this.instanceField8 = 8;
+        this.instanceField9 = 9;
+        this.instanceField10 = 10;
+        this.instanceField11 = 11;
+        this.instanceField12 = 12;
+        this.instanceField13 = 13;
+        this.instanceField14 = 14;
+        this.instanceField15 = 15;
+        this.instanceField16 = 16;
+        this.instanceField17 = 17;
+        this.instanceField18 = 18;
+        this.instanceField19 = 19;
+        this.instanceField20 = 20;
+    }
+
+    public void setInstanceField1(int value) {
+        this.instanceField1 = value;
+    }
+
+    public void setInstanceField2(int value) {
+        this.instanceField2 = value;
+    }
+
+    public void setInstanceField3(int value) {
+        this.instanceField3 = value;
+    }
+
+    public void setInstanceField4(int value) {
+        this.instanceField4 = value;
+    }
+
+    public void setInstanceField5(int value) {
+        this.instanceField5 = value;
+    }
+
+    public void setInstanceField6(int value) {
+        this.instanceField6 = value;
+    }
+
+    public void setInstanceField7(int value) {
+        this.instanceField7 = value;
+    }
+
+    public void setInstanceField8(int value) {
+        this.instanceField8 = value;
+    }
+
+    public void setInstanceField9(int value) {
+        this.instanceField9 = value;
+    }
+
+    public void setInstanceField10(int value) {
+        this.instanceField10 = value;
+    }
+
+    public void setInstanceField11(int value) {
+        this.instanceField11 = value;
+    }
+
+    public void setInstanceField12(int value) {
+        this.instanceField12 = value;
+    }
+
+    public void setInstanceField13(int value) {
+        this.instanceField13 = value;
+    }
+
+    public void setInstanceField14(int value) {
+        this.instanceField14 = value;
+    }
+
+    public void setInstanceField15(int value) {
+        this.instanceField15 = value;
+    }
+
+    public void setInstanceField16(int value) {
+        this.instanceField16 = value;
+    }
+
+    public void setInstanceField17(int value) {
+        this.instanceField17 = value;
+    }
+
+    public void setInstanceField18(int value) {
+        this.instanceField18 = value;
+    }
+
+    public void setInstanceField19(int value) {
+        this.instanceField19 = value;
+    }
+
+    public void setInstanceField20(int value) {
+        this.instanceField20 = value;
+    }
+
+    public int getInstanceField1() {
+        return this.instanceField1;
+    }
+
+    public int getInstanceField2() {
+        return this.instanceField2;
+    }
+
+    public int getInstanceField3() {
+        return this.instanceField3;
+    }
+
+    public int getInstanceField4() {
+        return this.instanceField4;
+    }
+
+    public int getInstanceField5() {
+        return this.instanceField5;
+    }
+
+    public int getInstanceField6() {
+        return this.instanceField6;
+    }
+
+    public int getInstanceField7() {
+        return this.instanceField7;
+    }
+
+    public int getInstanceField8() {
+        return this.instanceField8;
+    }
+
+    public int getInstanceField9() {
+        return this.instanceField9;
+    }
+
+    public int getInstanceField10() {
+        return this.instanceField10;
+    }
+
+    public int getInstanceField11() {
+        return this.instanceField11;
+    }
+
+    public int getInstanceField12() {
+        return this.instanceField12;
+    }
+
+    public int getInstanceField13() {
+        return this.instanceField13;
+    }
+
+    public int getInstanceField14() {
+        return this.instanceField14;
+    }
+
+    public int getInstanceField15() {
+        return this.instanceField15;
+    }
+
+    public int getInstanceField16() {
+        return this.instanceField16;
+    }
+
+    public int getInstanceField17() {
+        return this.instanceField17;
+    }
+
+    public int getInstanceField18() {
+        return this.instanceField18;
+    }
+
+    public int getInstanceField19() {
+        return this.instanceField19;
+    }
+
+    public int getInstanceField20() {
+        return this.instanceField20;
+    }
+}
