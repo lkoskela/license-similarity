@@ -34,6 +34,8 @@ export type PrecomputedData = {
     licenseListReleaseDate: string,
     licenseDeprecations: {[licenseId:string]: boolean},
     licenseLengths: {[licenseId:string]: number},
+    shortestLicenseText: number,
+    longestLicenseText: number,
     licenses: License[],
     exceptions: Exception[],
     tokendatabase: TokenDatabaseData

@@ -33,6 +33,9 @@ const generatePrecomputedData = async (licenseData: GeneratedLicenseData): Promi
         return data
     })()
 
+    const shortestLicenseText = Math.min(...Object.values(licenseLengths))
+    const longestLicenseText = Math.max(...Object.values(licenseLengths))
+
     const licenseDeprecations: {[licenseId:string]: boolean} = ((): {[licenseId:string]: boolean} => {
         const data: {[licenseId:string]: boolean} = {}
         normalizedLicenses.forEach(license => data[license.licenseId] = license.isDeprecated)
@@ -46,6 +49,8 @@ const generatePrecomputedData = async (licenseData: GeneratedLicenseData): Promi
         licenseListReleaseDate: licenseData.licenses.releaseDate,
         licenseDeprecations,
         licenseLengths,
+        shortestLicenseText,
+        longestLicenseText,
         licenses: normalizedLicenses,
         exceptions: normalizedExceptions,
         tokendatabase: tokenDatabase.toJsonObject()
