@@ -55,19 +55,47 @@ const defaultOptions: IdentifyOptions = {
 
 /**
  * Filter a list of licenses based on the provided license text's length, only considering
- * licenses whose text is within a certain threshold percentage of the input's length.
+ * licenses whose text is within a certain threshold percentage of the input's length. The
+ * percentage-wise threshold length is approximated based on the maximum score for the
+ * Sorensen-Dice coefficient for such a difference in lengths of the strings being compared,
+ * and the minimum threshold defined in {@link IdentifyOptions} for the Sorensen-Dice
+ * coefficient score to be considered a good enough match.
  *
  * @param text The text we're going to be comparing licenses to
  * @param licenses The list of licenses to (potentially) compare the input to
- * @param threshold The allowed diff as a percentage of the input's length. E.g. 0.20 means
- *                  don't bother processing texts that differ more than 20% in length.
+ * @param options {@link IdentifyOptions} specifying the targeted matching accuracy, which we
+ *                use for approximating the implied length threshold to filter potentially
+ *                matching licenses with.
  * @returns A filtered list of licenses that are realistic candidates based on their length
  */
-const filterByLength = (text: string, licenses: License[], threshold: number = 0.2): License[] => {
+const filterByLength = (text: string, licenses: License[], options: IdentifyOptions): License[] => {
+    const lengthThresholdFor = (options: IdentifyOptions): number => {
+        if (options.threshold) {
+            if (options.threshold >= 0.95) {
+                return 0.10
+            } else if (options.threshold >= 0.9) {
+                return 0.17
+            } else if (options.threshold >= 0.85) {
+                return 0.25
+            } else if (options.threshold >= 0.8) {
+                return 0.33
+            } else if (options.threshold >= 0.75) {
+                return 0.40
+            } else if (options.threshold >= 0.66) {
+                return 0.50
+            }
+        }
+        return 0.33
+    }
+    const lengthThreshold = lengthThresholdFor(options)
+    if (lengthThreshold > 0.95) {
+        // don't bother filtering for length differences below 5%
+        return licenses
+    }
     const inputLength = computeLength(text)
     return licenses.filter(license => {
         const length = precomputed.licenseLengths[license.licenseId]
-        return (Math.abs(length - inputLength) / Math.max(inputLength, length)) < threshold
+        return (Math.abs(length - inputLength) / Math.max(inputLength, length)) < lengthThreshold
     })
 }
 
@@ -149,8 +177,8 @@ export const matchLicenses = (text: string, options?: IdentifyOptions): Match[] 
     const licenseText = extractLicenseText(text)
     const trimmedText = normalize(licenseText)
     if (trimmedText.length === 0) return []
-    const lengthBasedCandidates = filterByLength(trimmedText, precomputed.licenses)
     const effectiveOptions: IdentifyOptions = { ...defaultOptions, ...(options || {}) }
+    const lengthBasedCandidates = filterByLength(trimmedText, precomputed.licenses, effectiveOptions)
     let matches: Match[] = sortMatches(computeMatches(trimmedText, lengthBasedCandidates, effectiveOptions))
     // if (matches.length > 1 && matches[0] === matches[1] && !effectiveOptions.forceCharacterBasedDice) {
     //     const adjustedOptions = { ...effectiveOptions, forceCharacterBasedDice: true }
