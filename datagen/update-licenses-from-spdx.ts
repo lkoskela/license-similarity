@@ -98,10 +98,7 @@ const updateFileFromURL = async (destinationFilePath: string, sourceUrl: string,
         const details = await downloadManyJSONFiles(urls)
         json[entryListKey] = details.filter(x => !!x && !x.error).map(detailsObjectMapper)
         const str = JSON.stringify(json, null, 2)
-            .replace(/[\u{003e}]/gu, '>')   // replace the closing bracket (greater than)
-            .replace(/[\u{003c}]/gu, '<')   // replace the opening bracket (less than)
-            .replace(/[\u{0027}]/gu, '\'')  // replace the apostrophe
-            .replace(/[^\x00-\x7F]/g, '')   // Throw the rest away
+            .replace(/[^\x00-\x7F]/g, '')   // Throw unwanted characters away
         mkdirSync(path.dirname(destinationFilePath), { recursive: true })
         writeFileSync(destinationFilePath, str, { encoding: 'utf8' })
         console.log(`Updated ${destinationFilePath} with version ${latestVersion} from ${sourceUrl}`)
