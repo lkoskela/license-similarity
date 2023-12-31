@@ -1,5 +1,6 @@
 import { createHash } from 'crypto'
 import { pipeline } from 'stream'
+import { XMLParser } from 'fast-xml-parser'
 import * as path from 'path'
 import { get } from 'https'
 import { readFileSync, writeFileSync, createWriteStream, existsSync, statSync, mkdirSync } from 'fs'
@@ -20,13 +21,49 @@ const hash = (str: string): string => {
     return shasum.digest('hex')
 }
 
+const attemptXmlRdfFallback = async (url: string): Promise<any> => {
+    let match = url.match(/https:\/\/spdx.org\/licenses\/(.*?).json/)
+    if (match && match[1]) {
+        let licenseId = match[1]
+        let xmlUrl = `https://raw.githubusercontent.com/spdx/license-list-data/main/rdfxml/${licenseId}.rdf`
+        try {
+            let xmlDoc = await downloadXML(xmlUrl, false)
+            console.debug(`Error parsing JSON from ${url} but found an XML fallback from ${xmlUrl}`)
+            return convertLicenseXmlToJsonObject(xmlDoc)
+        } catch (err: any) {
+            console.debug(`Could not find ${xmlUrl} either as a fallback for ${url} either: ${err}`, err.stack)
+            throw err
+        }
+    }
+    return Promise.reject()
+}
+
 const downloadJSON = async (url: string): Promise<any> => {
-    const rawJson = await new Promise<string>((resolve, _reject) => {
+    const rawJson = await downloadRawContentFrom(url)
+    try {
+        return JSON.parse(rawJson)
+    } catch (err) {
+        // Since the SPDX project's data is often messed up such that a given license's JSON file is missing
+        // even though the equivalent XML source file exists, let's fall back to downloading and parsing the
+        // XML file is it exists.
+        return attemptXmlRdfFallback(url).catch(() => {
+            const errorPayload = {
+                error: `Error parsing JSON from ${url}: ${err}`,
+                details: `Raw content received:\n${rawJson}`
+            }
+            console.error(`${errorPayload.error}\n\n${errorPayload.details}`)
+            return errorPayload
+        })
+    }
+}
+
+const downloadRawContentFrom = async (url: string): Promise<any> => {
+    const rawContent = await new Promise<string>((resolve, _reject) => {
         const tmpFilePath = path.join(tmpdir(), hash(url))
         get(url, (response) => {
             const callback = (err: NodeJS.ErrnoException|null) => {
                 if (err) {
-                    console.warn(`Could not download JSON from ${url} - ${err}`)
+                    console.warn(`Could not download content from ${url} - ${err}`)
                     resolve('{}')
                 } else {
                     resolve(readFileSync(tmpFilePath).toString())
@@ -35,15 +72,145 @@ const downloadJSON = async (url: string): Promise<any> => {
             pipeline(response, createWriteStream(tmpFilePath), callback)
         })
     })
+    return rawContent
+}
+
+const downloadXML = async (url: string, preserveOrder: boolean = true): Promise<any> => {
+    const rawXml = await downloadRawContentFrom(url)
     try {
-        return JSON.parse(rawJson)
-    } catch (err) {
-        console.error(`Error parsing JSON from ${url}: ${err}\n\nRaw content:\n${rawJson}`)
-        return {
-            error: `Error parsing JSON from ${url}: ${err}`,
-            details: `Raw content received:\n${rawJson}`
+        const options = {
+            ignoreAttributes: false,
+            allowBooleanAttributes: true,
+            preserveOrder: preserveOrder,
+            attributeNamePrefix : "",
+            attributesGroupName : "@",
+            commentPropName: "#comment"
         }
+        const parser = new XMLParser(options)
+        const xml = parser.parse(rawXml)
+        return xml
+    } catch (err) {
+        console.error(`Error parsing XML from ${url}: ${err}\n\nRaw content:\n${rawXml}`)
+        return Promise.reject({
+            error: `Error parsing XML from ${url}: ${err}`,
+            details: `Raw content received:\n${rawXml}`
+        })
     }
+}
+
+type NamespaceMappings = {
+    [name: string]: string
+}
+
+type Namespaces = {
+    byUri(uri: string): string
+}
+
+const parseNamespaces = (mappings: NamespaceMappings|undefined): Namespaces => {
+    const keyedByPrefix: { [name:string]: string } = {}
+    const keyedByURI: { [name:string]: string } = {}
+    if (mappings) {
+        Object.keys(mappings).forEach(ns => {
+            let prefix = ns.replace(/^xmlns:/, '')
+            let uri = mappings[ns]
+            keyedByPrefix[prefix] = uri
+            keyedByURI[uri] = prefix
+        })
+    }
+    const byUri = (uri: string): string => { return keyedByURI[uri] || '' }
+    return { byUri }
+}
+
+const convertLicenseXmlToJsonObject = (doc: any): any => {
+    let root = doc[Object.keys(doc)[0]]
+    let namespaces = parseNamespaces(root["@"])
+    let nsRdf = namespaces.byUri('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
+    let nsSpdx = namespaces.byUri('http://spdx.org/rdf/terms#')
+    let nsRdfs = namespaces.byUri('http://www.w3.org/2000/01/rdf-schema#')
+
+    const getBooleanValueFromRoot = (node: any, childName: string, defaultValue: boolean = false): boolean => {
+        let childNode = node[childName]
+        if (childNode && childNode["#text"] !== undefined) {
+            if (childNode["@"][`${nsRdf}:datatype`] !== "http://www.w3.org/2001/XMLSchema#boolean") {
+                console.warn(`Unexpected datatype for a boolean: ${JSON.stringify(childNode, null, 2)}`)
+            }
+            return childNode["#text"]
+        }
+        return defaultValue
+    }
+
+    const getIntegerValueFromRoot = (node: any, childName: string, defaultValue: number = 0): number => {
+        let childNode = node[childName]
+        if (childNode && childNode["#text"] !== undefined) {
+            if (childNode["@"][`${nsRdf}:datatype`] !== "http://www.w3.org/2001/XMLSchema#int") {
+                console.warn(`Unexpected rdf:datatype for an integer: ${JSON.stringify(childNode, null, 2)}`)
+            }
+            return childNode["#text"]
+        }
+        return defaultValue
+    }
+
+    const getStringValueFromRoot = (node: any, childName: string): string|undefined => {
+        let childNode = node[childName]
+        if (childNode && typeof(childNode) === 'string') return childNode.trim()
+        return undefined
+    }
+
+    let listedLicense = root[`${nsSpdx}:ListedLicense`]
+    let licenseId = getStringValueFromRoot(listedLicense, `${nsSpdx}:licenseId`)
+    let isOsiApproved = getBooleanValueFromRoot(listedLicense, `${nsSpdx}:isOsiApproved`)
+    let isFsfLibre = getBooleanValueFromRoot(listedLicense, `${nsSpdx}:isFsfLibre`)
+    let isDeprecatedLicenseId = getBooleanValueFromRoot(listedLicense, `${nsSpdx}:isDeprecatedLicenseId`)
+    let name = getStringValueFromRoot(listedLicense, `${nsSpdx}:name`)
+    let standardLicenseHeader = getStringValueFromRoot(listedLicense, `${nsSpdx}:standardLicenseHeader`)
+    let standardLicenseHeaderHtml = getStringValueFromRoot(listedLicense, `${nsSpdx}:standardLicenseHeaderHtml`)
+    let standardLicenseHeaderTemplate = getStringValueFromRoot(listedLicense, `${nsSpdx}:standardLicenseHeaderTemplate`)
+    let standardLicenseTemplate = getStringValueFromRoot(listedLicense, `${nsSpdx}:standardLicenseTemplate`)
+    let licenseText = getStringValueFromRoot(listedLicense, `${nsSpdx}:licenseText`)
+    let licenseTextHtml = getStringValueFromRoot(listedLicense, `${nsSpdx}:licenseTextHtml`)
+
+    let seeAlso = listedLicense[`${nsRdfs}:seeAlso`]
+    if (seeAlso === undefined) {
+        seeAlso = []
+    } else if (!Array.isArray(seeAlso)) {
+        seeAlso = typeof(seeAlso) === 'string' ? [ seeAlso ] : []
+    }
+
+    const mapCrossRef = (node: any): any => {
+        let element = node[`${nsSpdx}:CrossRef`]
+        let order = getIntegerValueFromRoot(element, `${nsSpdx}:order`)
+        let match = getBooleanValueFromRoot(element, `${nsSpdx}:match`).toString()
+        let url = getStringValueFromRoot(element, `${nsSpdx}:url`)
+        let isValid = getBooleanValueFromRoot(element, `${nsSpdx}:isValid`)
+        let isLive = getBooleanValueFromRoot(element, `${nsSpdx}:isLive`)
+        let isWayBackLink = getBooleanValueFromRoot(element, `${nsSpdx}:isWayBackLink`)
+        let timestamp = getStringValueFromRoot(element, `${nsSpdx}:timestamp`)
+        return { order, match, url, isValid, isLive, isWayBackLink, timestamp }
+    }
+    let crossRef = listedLicense[`${nsSpdx}:crossRef`]
+    if (crossRef === undefined) {
+        crossRef = []
+    } else if (Array.isArray(crossRef)) {
+        crossRef = crossRef.map(mapCrossRef)
+    } else if (typeof(crossRef) === 'object') {
+        crossRef = [ mapCrossRef(crossRef) ]
+    }
+    const jsonizedLicenseObject = {
+        isDeprecatedLicenseId,
+        isFsfLibre,
+        licenseText,
+        standardLicenseHeaderTemplate,
+        standardLicenseTemplate,
+        name,
+        licenseId,
+        standardLicenseHeader,
+        crossRef,
+        seeAlso,
+        isOsiApproved,
+        licenseTextHtml,
+        standardLicenseHeaderHtml
+    }
+    return jsonizedLicenseObject
 }
 
 function sliceIntoChunks<T>(arr: T[], chunkSize: number): T[][] {
@@ -94,7 +261,7 @@ const updateFileFromURL = async (destinationFilePath: string, sourceUrl: string,
         console.log(`${destinationFilePath} already has version ${latestVersion} from ${sourceUrl} --> skip update`)
     } else {
         console.log(`Update available (from ${localVersion} to ${latestVersion}) --> updating ${entryListKey}`)
-        const urls = json[entryListKey].map(detailsUrlMapper)
+        const urls = json[entryListKey].map(detailsUrlMapper) as string[]
         const details = await downloadManyJSONFiles(urls)
         json[entryListKey] = details.filter(x => !!x && !x.error).map(detailsObjectMapper)
         const str = JSON.stringify(json, null, 2)
