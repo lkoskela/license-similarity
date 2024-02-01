@@ -27,7 +27,7 @@ export type IdentifyOptions = {
      * The (Sorensen-Dice coefficient) similarity score threshold to use
      * as a minimum for a license to be considered a match.
      *
-     * Default value: `0.90`
+     * Default value: `0.7`
      */
     threshold?: number,
 
@@ -48,7 +48,7 @@ export type IdentifyOptions = {
 }
 
 const defaultOptions: IdentifyOptions = {
-    threshold: 0.90,
+    threshold: 0.7,
     max: 10,
     forceCharacterBasedDice: false,
 }

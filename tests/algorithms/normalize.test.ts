@@ -1,4 +1,6 @@
 import { normalize } from "../../src/algorithms/normalize"
+import { readFileAsString } from "../../src/filesystem/file-utils"
+import { extractLicenseText } from "../../src/matching/extraction"
 
 describe('normalize', () => {
 
@@ -68,5 +70,131 @@ describe('normalize', () => {
             expect(normalize(input)).toStrictEqual(expected)
         })
     })
+
+    describe('Copyright statements', () => {
+
+        describe('Copyright (c) 2024 ACME Inc', () => {
+
+            it('with an empty line after the copyright statement', () => {
+                const input =
+                    'Copyright (c) 2024 ACME Inc\n' +
+                    '\n' +
+                    'Permission is granted to do whatever you like.'
+                const expected = 'permission is granted to do whatever you like'
+                expect(normalize(input)).toStrictEqual(expected)
+            })
+
+            it('without empty line after the copyright statement', () => {
+                const input =
+                    'Copyright (c) 2024 ACME Inc\n' +
+                    'Permission is granted to do whatever you like.'
+                const expected = 'permission is granted to do whatever you like'
+                expect(normalize(input)).toStrictEqual(expected)
+            })
+        })
+    })
 })
 
+describe('normalize select generated samples', () => {
+
+    it('tests/samples/MIT/github.txt.cstyle-source-header-small-java-class', () => {
+        const input = readFileAsString('tests/samples/MIT/github.txt.cstyle-source-header-small-java-class')
+        expect(input).toMatch(/\/\*\*\n/g)
+
+        const header = extractLicenseText(input)
+        expect(header.trim()).toEqual(
+            'Copyright (c) 2001-2023\n' +
+            'Allen Short\n' +
+            'Amber Hawkie Brown\n' +
+            'Andrew Bennetts\n' +
+            'Andy Gayton\n' +
+            'Antoine Pitrou\n' +
+            'Apple Computer, Inc.\n' +
+            'Ashwini Oruganti\n' +
+            'Benjamin Bruheim\n' +
+            'Bob Ippolito\n' +
+            'Canonical Limited\n' +
+            'Christopher Armstrong\n' +
+            'Ciena Corporation\n' +
+            'David Reid\n' +
+            'Divmod Inc.\n' +
+            'Donovan Preston\n' +
+            'Eric Mangold\n' +
+            'Eyal Lotem\n' +
+            'Google Inc.\n' +
+            'Hybrid Logic Ltd.\n' +
+            'Hynek Schlawack\n' +
+            'Itamar Turner-Trauring\n' +
+            'James Knight\n' +
+            'Jason A. Mobarak\n' +
+            'Jean-Paul Calderone\n' +
+            'Jessica McKellar\n' +
+            'Jonathan D. Simms\n' +
+            'Jonathan Jacobs\n' +
+            'Jonathan Lange\n' +
+            'Julian Berman\n' +
+            'Jürgen Hermann\n' +
+            'Kevin Horn\n' +
+            'Kevin Turner\n' +
+            'Laurens Van Houtven\n' +
+            'Mary Gardiner\n' +
+            'Massachusetts Institute of Technology\n' +
+            'Matthew Lefkowitz\n' +
+            'Moshe Zadka\n' +
+            'Paul Swartz\n' +
+            'Pavel Pergamenshchik\n' +
+            'Rackspace, US Inc.\n' +
+            'Ralph Meijer\n' +
+            'Richard Wall\n' +
+            'Sean Riley\n' +
+            'Software Freedom Conservancy\n' +
+            'Tavendo GmbH\n' +
+            'Thijs Triemstra\n' +
+            'Thomas Grainger\n' +
+            'Thomas Herve\n' +
+            'Timothy Allen\n' +
+            'Tom Most\n' +
+            'Tom Prince\n' +
+            'Travis B. Hartwell\n' +
+            '\n' +
+            'and others that have contributed code to the public domain.\n' +
+            '\n' +
+            'Permission is hereby granted, free of charge, to any person obtaining\n' +
+            'a copy of this software and associated documentation files (the\n' +
+            '"Software"), to deal in the Software without restriction, including\n' +
+            'without limitation the rights to use, copy, modify, merge, publish,\n' +
+            'distribute, sublicense, and/or sell copies of the Software, and to\n' +
+            'permit persons to whom the Software is furnished to do so, subject to\n' +
+            'the following conditions:\n' +
+            '\n' +
+            'The above copyright notice and this permission notice shall be\n' +
+            'included in all copies or substantial portions of the Software.\n' +
+            '\n' +
+            'THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,\n' +
+            'EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF\n' +
+            'MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND\n' +
+            'NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE\n' +
+            'LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION\n' +
+            'OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION\n' +
+            'WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n'.trim())
+
+            expect(normalize(header)).toStrictEqual(
+                'permission is hereby granted free of charge to any person obtaining ' +
+                'a copy of this software and associated documentation files (the ' +
+                'software ) to deal in the software without restriction including ' +
+                'without limitation the rights to use copy modify merge publish ' +
+                'distribute sublicense and/or sell copies of the software and to ' +
+                'permit persons to whom the software is furnished to do so subject to ' +
+                'the following conditions: ' +
+                'the above copyright notice and this permission notice shall be ' +
+                'included in all copies or substantial portions of the software ' +
+                'the software is provided as is without warranty of any kind ' +
+                'express or implied including but not limited to the warranties of ' +
+                'merchantability fitness for a particular purpose and ' +
+                'noninfringement in no event shall the authors or copyright holders be ' +
+                'liable for any claim damages or other liability whether in an action ' +
+                'of contract tort or otherwise arising from out of or in connection ' +
+                'with the software or the use or other dealings in the software'
+            )
+    })
+})

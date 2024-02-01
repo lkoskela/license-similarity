@@ -1,3 +1,5 @@
+import { extractLicenseText } from "../matching/extraction"
+
 const URL_REGEX = /http[s]?:\/\/(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+/g
 const COPYRIGHT_NOTICE_REGEX = /((?<=\n)|.*?)Copyright.+?(?=\n)|(Copyright.+?\n)/i
 const COPYRIGHT_SYMBOLS = /[©Ⓒⓒ]/g
@@ -60,15 +62,12 @@ const VARIETAL_WORDS_SPELLING: {[name:string]: string} = {
 
 
 const normalizeLicenseText = (licenseText: string): string => {
-    // if (licenseText.startsWith('MIT License')) {
-    //     console.log(`normalizing MIT license text(?)`)
-    // }
-
     // To avoid a possibility of a non-match due to urls not being same.
     licenseText = licenseText.replace(URL_REGEX, 'xxxxx')
 
     // To avoid the license mismatch merely due to the existence or absence of code comment indicators placed within the license text, they are just removed.
     licenseText = licenseText.replace(CSTYLE_COMMENTS_REGEX, ' ')
+
     licenseText = licenseText.replace(COMMENTS_REGEX, '')
 
     // We'll also ignore punctuation
@@ -79,20 +78,27 @@ const normalizeLicenseText = (licenseText: string): string => {
 
     // To avoid a license mismatch merely because extraneous text that appears at the end of the terms of a license is different or missing.
     licenseText = licenseText.replace(EXTRANEOUS_REGEX, ' ')
+
     licenseText = licenseText.replace(ADDENDIUM_EXHIBIT_REGEX, ' ')
 
     // By using a default copyright symbol (c)", we can avoid the possibility of a mismatch.
     licenseText = licenseText.replace(COPYRIGHT_SYMBOLS, '(c)')
 
     // To avoid a license mismatch merely because the copyright notice is different, it is not substantive and is removed.
-    licenseText = licenseText.replace(COPYRIGHT_NOTICE_REGEX, '')
+    const [head, ...tail] = licenseText.split(/\n\n(?=[A-Z])/)
+    if (tail.length > 0 && tail[0].length > 0 && head.startsWith('Copyright') && head.length < 1000) {
+        licenseText = tail.join('\n\n')
+    } else {
+        licenseText = licenseText.replace(COPYRIGHT_NOTICE_REGEX, '')
+    }
 
     // To avoid a possibility of a non-match due to case sensitivity.
     licenseText = licenseText.toLowerCase()
 
     // To remove the license name or title present at the beginning of the license text.
-    if (licenseText.split('\n')[0].includes('license')) {
-        licenseText = licenseText.split('\n').slice(1).join('\n')
+    const lines = licenseText.split('\n')
+    if (lines.length > 1 && lines[0].includes('license')) {
+        licenseText = lines.slice(1).join('\n')
     }
 
     // To avoid the possibility of a non-match due to variations of bullets, numbers, letter, or no bullets used are simply removed.
@@ -113,6 +119,13 @@ const normalizeLicenseText = (licenseText: string): string => {
     return licenseText
 }
 
+/**
+ * Normalize the given input into a canonical form that can be used for comparison algorithms.
+ *
+ * @param licenseText The plain license text to be normalized or source code (e.g. Java, Python, etc.)
+ *                    with the license text embedded in a header comment.
+ * @returns The normalized license text extracted from the input.
+ */
 export const normalize = (licenseText: string): string => {
-    return normalizeLicenseText(licenseText)
+    return normalizeLicenseText(extractLicenseText(licenseText))
 }
