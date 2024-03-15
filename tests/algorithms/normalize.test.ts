@@ -13,6 +13,7 @@ describe('normalize', () => {
         it('whitespace gets shrunk', () => {
             expect(normalize('one two three')).toStrictEqual('one two three')
             expect(normalize(' one\t two    three   ')).toStrictEqual('one two three')
+            expect(normalize('\none\t\ntwo \n\n  \t three   \n ')).toStrictEqual('one two three')
         })
 
         it('leading/trailing whitespace gets trimmed', () => {
