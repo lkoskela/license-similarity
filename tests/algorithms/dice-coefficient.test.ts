@@ -44,7 +44,7 @@ describe('Universal rules', () => {
 })
 
 describe('License-like examples', () => {
-    it('empty lines do not matter in longer texts either', () => {
+    it('empty lines do not matter inside longer texts', () => {
         const lines = [
             'Copyright (c) <year> <owner>',
             '',
@@ -55,6 +55,40 @@ describe('License-like examples', () => {
             '2. Redistributions in binary form must reproduce the above copyright notice',
             '',
             'THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"'
+        ]
+        const a = lines.join('\n')
+        const b = lines.filter(line => line.length > 0).join('\n')
+        expect(diceCoefficient(a, b)).toBeCloseTo(1.0, 2)
+    })
+
+    it('empty lines do not matter in front of longer texts', () => {
+        const lines = [
+            '',
+            '',
+            '',
+            '',
+            'Copyright (c) <year> <owner>',
+            'Redistribution and use in source and binary forms:',
+            '1. Redistributions of source code must retain the above copyright notice',
+            '2. Redistributions in binary form must reproduce the above copyright notice',
+            'THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"'
+        ]
+        const a = lines.join('\n')
+        const b = lines.filter(line => line.length > 0).join('\n')
+        expect(diceCoefficient(a, b)).toBeCloseTo(1.0, 2)
+    })
+
+    it('empty lines do not matter in the end of longer texts', () => {
+        const lines = [
+            'Copyright (c) <year> <owner>',
+            'Redistribution and use in source and binary forms:',
+            '1. Redistributions of source code must retain the above copyright notice',
+            '2. Redistributions in binary form must reproduce the above copyright notice',
+            'THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"',
+            '',
+            '',
+            '',
+            '',
         ]
         const a = lines.join('\n')
         const b = lines.filter(line => line.length > 0).join('\n')

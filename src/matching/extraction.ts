@@ -51,7 +51,7 @@ const removeCommonWhitespacePrefix = (lines: string[]): string[] => {
  */
 class CStyleHeaderAndTailMatcher implements HeaderAndTailMatcher {
     match(input: string): HeaderAndTail|undefined {
-        const cstyleHeaderMatch = input.match(/^\/\*.*?\*\//sg)
+        const cstyleHeaderMatch = input.match(/^\/\*[\S\s]*?\*\//gm)
         if (cstyleHeaderMatch) {
             const tail = input.substring(cstyleHeaderMatch[0].length)
             let lines = cstyleHeaderMatch[0].split('\n')
@@ -119,10 +119,12 @@ class LinePrefixBasedHeaderAndTailMatcher implements HeaderAndTailMatcher {
     }
 }
 
+// Here, order matters because it's somewhat common for a C-style comment to be present
+// *after* a line-prefix license header.
 const headerAndTailMatchers: HeaderAndTailMatcher[] = [
-    new CStyleHeaderAndTailMatcher(),
     new LinePrefixBasedHeaderAndTailMatcher('//'),
-    new LinePrefixBasedHeaderAndTailMatcher('#')
+    new LinePrefixBasedHeaderAndTailMatcher('#'),
+    new CStyleHeaderAndTailMatcher(),
 ]
 
 /**
@@ -140,7 +142,7 @@ export const extractLicenseText = (input: string): string => {
         if (match) {
             const tail = match.tail.trim()
             if (tail.length > 0 && tail.split('\n').length >= 1) {
-                return match.header
+                return match.header.trimEnd()
             }
         }
     }

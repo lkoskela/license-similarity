@@ -1,6 +1,46 @@
 import { extractLicenseText } from "../../src/matching/extraction"
 
+
 describe('extractLicenseText', () => {
+
+    describe('dash-dash license header followed by a C-style "javadoc" comment', () => {
+        it('extracts just the dash-dash license header', () => {
+            const input = [
+                '// This is a',
+                '// multi-line',
+                '// license header',
+                '',
+                '/**',
+                ' * This is a',
+                ' * javadoc comment',
+                ' */',
+                'class ThisIsCode {',
+                '    // code here',
+                '}',
+            ].join('\n')
+            const text = extractLicenseText(input)
+            expect(text).toStrictEqual('This is a\nmulti-line\nlicense header')
+        })
+    })
+
+    describe('C-style license header followed by a dash-dash style "javadoc" comment', () => {
+        it('extracts just the dash-dash license header', () => {
+            const input = [
+                '/**',
+                ' * This is a',
+                ' * license header',
+                ' */',
+                '',
+                '// This is a',
+                '// javadoc comment',
+                'class ThisIsCode {',
+                '    // code here',
+                '}',
+            ].join('\n')
+            const text = extractLicenseText(input)
+            expect(text).toStrictEqual('This is a\nlicense header')
+        })
+    })
 
     describe('input not starting with a comment', () => {
         it('gets returned as-is', () => {
@@ -69,6 +109,19 @@ describe('extractLicenseText', () => {
                 expect(extractLicenseText(sample)).toStrictEqual('This is a\nmulti-line\nlicense header.')
             })
 
+            it('even a one-line comment is considered valid', () => {
+                const sample = [
+                    '/** This is a one-line license header. */',
+                    'This',
+                    '',
+                    'is code {',
+                    '    following()',
+                    '    the.license("header");',
+                    '}',
+                ].join('\n')
+                expect(extractLicenseText(sample)).toStrictEqual('This is a one-line license header.')
+            })
+
             it('leading whitespace is trimmed to match original indentation', () => {
                 const sample = [
                     '/**',
@@ -99,6 +152,17 @@ describe('extractLicenseText', () => {
                     '}',
                 ].join('\n')
                 expect(extractLicenseText(sample)).toStrictEqual('This is a\nmulti-line\nlicense header')
+            })
+
+            it('even a one-line comment is considered valid', () => {
+                const sample = [
+                    '// This is a long single-line license header using a dash-dash style comment',
+                    'This is code {',
+                    '    following()',
+                    '    the.license("header");',
+                    '}',
+                ].join('\n')
+                expect(extractLicenseText(sample)).toStrictEqual('This is a long single-line license header using a dash-dash style comment')
             })
 
             it('leading whitespace is trimmed to match original indentation', () => {
