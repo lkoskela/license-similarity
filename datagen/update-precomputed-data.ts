@@ -1,15 +1,15 @@
 import { writeFileSync } from 'fs'
 import { join } from 'path'
+import { GeneratedLicenseData, License, Exception } from 'licenses-from-spdx'
 
 import { normalize } from "../src/algorithms/normalize"
 import { computeLength } from "../src/algorithms/text-length"
 import { TokenDatabase } from "../src/matching/token-database"
 import { PrecomputedData } from "../src/data/types"
 import { serializePrecomputedData } from "../src/data/precomputed"
-import { GeneratedLicenseData } from './update-licenses-from-spdx'
 
 const generatePrecomputedData = async (licenseData: GeneratedLicenseData): Promise<PrecomputedData> => {
-    const normalizedLicenses = licenseData.licenses.licenses.map(license => {
+    const normalizedLicenses = licenseData.licenses.licenses.map((license: License) => {
         return {
             name: license.name,
             licenseId: license.licenseId,
@@ -18,7 +18,7 @@ const generatePrecomputedData = async (licenseData: GeneratedLicenseData): Promi
         }
     })
 
-    const normalizedExceptions = licenseData.exceptions.exceptions.map(exception => {
+    const normalizedExceptions = licenseData.exceptions.exceptions.map((exception: Exception) => {
         return {
             name: exception.name,
             licenseExceptionId: exception.licenseExceptionId,
@@ -29,7 +29,7 @@ const generatePrecomputedData = async (licenseData: GeneratedLicenseData): Promi
 
     const licenseLengths: {[licenseId:string]: number} = ((): {[licenseId:string]: number} => {
         const data: {[licenseId:string]: number} = {}
-        normalizedLicenses.forEach(license => data[license.licenseId] = computeLength(license.licenseText))
+        normalizedLicenses.forEach((license: License) => data[license.licenseId] = computeLength(license.licenseText))
         return data
     })()
 
@@ -38,7 +38,7 @@ const generatePrecomputedData = async (licenseData: GeneratedLicenseData): Promi
 
     const licenseDeprecations: {[licenseId:string]: boolean} = ((): {[licenseId:string]: boolean} => {
         const data: {[licenseId:string]: boolean} = {}
-        normalizedLicenses.forEach(license => data[license.licenseId] = license.isDeprecated)
+        normalizedLicenses.forEach((license: License) => data[license.licenseId] = license.isDeprecated)
         return data
     })()
 
