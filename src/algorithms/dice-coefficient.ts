@@ -1,36 +1,17 @@
-// Source: https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Dice%27s_coefficient#Javascript
-//
-// const getBigrams = (text: string): Set<string> => {
-//     const bigrams = new Set<string>()
-//     for (let i = 0; i < text.length - 1; i++) {
-//         bigrams.add(text.substring(i, i + 2))
-//     }
-//     return bigrams
-// }
-//
-// const intersect = (set1: Set<string>, set2: Set<string>): Set<string> => {
-//     return new Set([...set1].filter((x) => set2.has(x)))
-// }
-//
-// export const diceCoefficient = (text1: string, text2: string): number => {
-//     const bigrams1 = getBigrams(text1)
-//     const bigrams2 = getBigrams(text2)
-//     return (2 * intersect(bigrams1, bigrams2).size) / (bigrams1.size + bigrams2.size)
-// }
+// Note: An alternative implementation of the Dice coefficient can be found from e.g the Natural library:
+// https://naturalnode.github.io/natural/string_distance.html
+import stringComparison from "string-comparison"
 
-// Alternative implementation: npm install dice-coefficient
-
-import { compareTwoStrings } from "string-similarity"
 import { normalize } from "./normalize"
+
 
 export const diceCoefficient = (text1: string, text2: string): number => {
     const normalized1 = normalize(text1)
     const normalized2 = normalize(text2)
     if (normalized1.length < 2 || normalized2.length < 2) return 0
     if (normalized1 === normalized2) return 1
-    return compareTwoStrings(normalized1, normalized2)
+    return stringComparison.diceCoefficient.similarity(normalized1, normalized2)
 }
-
 
 export const diceCoefficientForVectors = (text1: number[], text2: number[]): number => {
     const getBigrams = (vector: number[]): Array<number[]> => {
