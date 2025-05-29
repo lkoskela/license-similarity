@@ -9,16 +9,17 @@ import { PrecomputedData } from "../src/data/types"
 import { serializePrecomputedData } from "../src/data/precomputed"
 
 const generatePrecomputedData = async (licenseData: GeneratedLicenseData): Promise<PrecomputedData> => {
-    const normalizedLicenses = licenseData.licenses.licenses.map((license: License) => {
+    const normalizedLicenses = licenseData.licenses.licenses.map((license: License): License => {
         return {
             name: license.name,
             licenseId: license.licenseId,
             licenseText: normalize(license.licenseText),
             isDeprecated: license.isDeprecated,
+            seeAlso: license.seeAlso,
         }
     })
 
-    const normalizedExceptions = licenseData.exceptions.exceptions.map((exception: Exception) => {
+    const normalizedExceptions = licenseData.exceptions.exceptions.map((exception: Exception): Exception => {
         return {
             name: exception.name,
             licenseExceptionId: exception.licenseExceptionId,
