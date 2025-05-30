@@ -46,8 +46,8 @@ describe("CLI", () => {
             expect(binScript).toBeDefined();
             const binScriptSource = readFileSync(binScript as string, { encoding: "utf-8" });
             const lines = binScriptSource.split("\n");
-            expect(lines).toInclude("#!/usr/bin/env node");
-            expect(lines[0]).toStartWith("#!/usr/bin/env node");
+            expect(lines).toContain("#!/usr/bin/env node");
+            expect(lines[0]).toEqual("#!/usr/bin/env node");
         });
 
         itif(definedBinScriptExists)("the bin script is executable", () => {
