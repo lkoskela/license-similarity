@@ -4,11 +4,11 @@
   "description": "Identify an open-source SPDX license from license text. (Essentially a pure-JavaScript/TypeScript fork of https://github.com/spdx/spdx-license-matcher)",
   "devDependencies": {
     "@babel/preset-typescript": "^7.16.0",
-    "@types/jest": "^29.2.6",
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.0.13",
     "@types/string-similarity": "^4.0.0",
     "@types/tmp": "^0.2.3",
-    "jest": "^29.4.0",
+    "jest": "^30.0.4",
     "jest-extended": "^5.0.3",
     "tmp": "^0.2.3",
     "ts-jest": "^29.0.5",
