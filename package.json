@@ -1,6 +1,6 @@
 {
   "name": "license-similarity",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Identify an open-source SPDX license from license text. (Essentially a pure-JavaScript/TypeScript fork of https://github.com/spdx/spdx-license-matcher)",
   "devDependencies": {
     "@babel/preset-typescript": "^7.16.0",
